@@ -16,12 +16,12 @@ async function init(conf) {
 		const result = {};
 
 		const func = (page) => {
-			const url = conf.url.replace('{{eagle-page}}', page);
+			const url = conf.url.replace(new RegExp('{{eagle-page}}','g'), page);
 			request.get(url).timeout({
 				response: 30000
 			}).then(res => {
 				const $ = cheerio.load(res.text);
-				
+
 				const items = $('h3.name a[ka^="search_list_company"]').toArray();
 				items.forEach(item => {
 					const name = $(item).text();
@@ -41,6 +41,8 @@ async function init(conf) {
 					reslove();
 				}
 			}).catch(err => {
+				console.log(err);
+				logger.info(`./log/boss/${id}`, err);
 				logger.info(`./log/boss/${id}`,`【初始化 id:${id}异常】${JSON.stringify(err)}`);
 				func(1);
 			});
@@ -55,7 +57,7 @@ async function findNew(conf) {
 		const { id, url, phones, duration } = conf;
 		const result = JSON.parse(fs.readFileSync(`./persistent/boss/${id}`));
 		const func = (page) => {
-			const url = conf.url.replace('{{eagle-page}}', page);
+			const url = conf.url.replace(new RegExp('{{eagle-page}}','g'), page);
 			request.get(url).timeout({
 				response: 30000
 			}).then(res => {
@@ -69,7 +71,7 @@ async function findNew(conf) {
 						result[name] = href;
 						logger.info(`./log/boss/${id}`, `【监控新数据 id: ${id}】==== name: ${name} | href: ${href} ====`);
 						phones.forEach(async phone => {
-							const { success } = await sms.send(`【Eagle-Take 发现新数据】平台: BOSS直聘 | 名称: ${name} | 链接: ${href}`, phone);
+							const { success } = await sms.send(`【EagleTake】发现新数据 | 平台: BOSS直聘 | 名称: ${name} | 链接: ${href}`, phone);
 							if (success) { logger.info(`./log/boss/${id}`, `发送短信到 ${phone} 成功`); }
 						});
 					}
