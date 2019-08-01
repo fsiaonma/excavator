@@ -1,6 +1,6 @@
-const request = require('superagent');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const agent = require('./common/agent');
 const config = require('./config');
 const sms = require('./common/sms');
 const logger = require('./common/logger');
@@ -17,9 +17,9 @@ async function init(conf) {
 
 		const func = (page) => {
 			const url = conf.url.replace(new RegExp('{{eagle-page}}','g'), page);
-			request.get(url).timeout({
-				response: 30000
-			}).then(res => {
+			agent.fetch(url).then(res => {
+				console.log(res.text);
+
 				const $ = cheerio.load(res.text);
 
 				const items = $('h3.name a[ka^="search_list_company"]').toArray();
@@ -44,7 +44,7 @@ async function init(conf) {
 				console.log(err);
 				logger.info(`./log/boss/${id}`, err);
 				logger.info(`./log/boss/${id}`,`【初始化 id:${id}异常】${JSON.stringify(err)}`);
-				func(1);
+				func(page); // 重试
 			});
 		}
 
@@ -58,9 +58,7 @@ async function findNew(conf) {
 		const result = JSON.parse(fs.readFileSync(`./persistent/boss/${id}`));
 		const func = (page) => {
 			const url = conf.url.replace(new RegExp('{{eagle-page}}','g'), page);
-			request.get(url).timeout({
-				response: 30000
-			}).then(res => {
+			agent.fetch(url).then(res => {
 				const $ = cheerio.load(res.text);
 				
 				const items = $('h3.name a[ka^="search_list_company"]').toArray();
@@ -91,7 +89,7 @@ async function findNew(conf) {
 				}
 			}).catch(err => {
 				logger.info(`./log/boss/${id}`,`【监控新数据 id:${id}异常】${JSON.stringify(err)} `);
-				func(1);
+				func(page); // 重试
 			});
 		}
 
@@ -112,8 +110,7 @@ async function fetch(conf) {
 (async function() {
 	const { boss } = config;
 	const jobs = [
-		fetch(boss[0]),
-		fetch(boss[1])
+		fetch(boss[0])
 	];
 	await Promise.all(jobs);
 })();
