@@ -1,6 +1,7 @@
 const querystring = require('querystring');
 const md5 = require('md5');
 const request = require('superagent');
+const logger = require('./logger');
 
 const resultCode = {
   '0': '短信发送成功',
@@ -30,10 +31,11 @@ module.exports = {
 
     const { text: resCode } = await request.get(`api.smsbao.com/sms?${query}`);
     if (resCode != '0') {
-      console.error(`[sendSMSMessage] send sms message error. resCode=${resCode} message=${resultCode[resCode]}`);
+      logger.info(`sms`,`【发送短信失败】resCode=${resCode} message=${resultCode[resCode]}`);
       return { success: false, message: `resCode:${resCode}, message:${resultCode[resCode]}.` };
     }
 
+    logger.info(`sms`, `【发送短信成功】号码: ${phone}`);
     return { success: true, message: 'success' };
   }
 }

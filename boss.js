@@ -18,8 +18,6 @@ async function init(conf) {
 		const func = (page) => {
 			const url = conf.url.replace(new RegExp('{{eagle-page}}','g'), page);
 			agent.fetch(url).then(res => {
-				console.log(res.text);
-
 				const $ = cheerio.load(res.text);
 
 				const items = $('h3.name a[ka^="search_list_company"]').toArray();
