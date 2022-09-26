@@ -25,6 +25,6 @@
     "path": "^0.12.7",
     "querystring": "^0.2.0",
     "superagent": "^5.1.0",
-    "superagent-proxy": "^2.0.0"
+    "superagent-proxy": "^3.0.0"
   }
 }
